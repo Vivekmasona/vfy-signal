@@ -1,0 +1,15 @@
+{
+  "name": "session-tracker",
+  "version": "1.0.0",
+  "description": "Real-time session tracker using Socket.io",
+  "main": "socket.js",
+  "scripts": {
+    "start": "node socket.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.5.4"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
