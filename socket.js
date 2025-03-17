@@ -11,34 +11,25 @@ const io = new Server(server, {
     }
 });
 
-const sessions = {}; // Store active users in each session
+const sessions = {}; // Store connected peers per session
 
 io.on("connection", (socket) => {
     let currentSession = null;
 
     socket.on("joinSession", (sessionID) => {
-        if (currentSession) {
-            socket.leave(currentSession);
-            if (sessions[currentSession]) {
-                sessions[currentSession].delete(socket.id);
-                if (sessions[currentSession].size === 0) {
-                    delete sessions[currentSession];
-                }
-            }
-        }
-
-        currentSession = sessionID;
         socket.join(sessionID);
+        currentSession = sessionID;
 
         if (!sessions[sessionID]) {
             sessions[sessionID] = new Set();
         }
-
         sessions[sessionID].add(socket.id);
-        updateStatus(sessionID);
 
-        // ✅ Alert All Users in Session
-        io.to(sessionID).emit("alert", `New user joined session: ${sessionID}`);
+        updateStatus(sessionID);
+    });
+
+    socket.on("rtcSignal", (data) => {
+        socket.to(data.sessionID).emit("rtcSignal", data);
     });
 
     socket.on("disconnect", () => {
@@ -58,7 +49,7 @@ io.on("connection", (socket) => {
 });
 
 app.get("/", (req, res) => {
-    res.send("Socket.io session tracking is running!");
+    res.send("WebRTC Session Tracking is Running!");
 });
 
 const PORT = process.env.PORT || 3000;
