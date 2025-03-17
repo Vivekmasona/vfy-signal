@@ -11,13 +11,24 @@ const io = new Server(server, {
     }
 });
 
-const sessions = {}; // Active session users
+const sessions = {}; // Store users in each session
 
 io.on("connection", (socket) => {
     let currentSession = null;
 
     socket.on("joinSession", (sessionID) => {
+        if (currentSession) {
+            socket.leave(currentSession);
+            if (sessions[currentSession]) {
+                sessions[currentSession].delete(socket.id);
+                if (sessions[currentSession].size === 0) {
+                    delete sessions[currentSession];
+                }
+            }
+        }
+
         currentSession = sessionID;
+        socket.join(sessionID);
 
         if (!sessions[sessionID]) {
             sessions[sessionID] = new Set();
@@ -31,7 +42,7 @@ io.on("connection", (socket) => {
         if (currentSession && sessions[currentSession]) {
             sessions[currentSession].delete(socket.id);
             if (sessions[currentSession].size === 0) {
-                delete sessions[currentSession]; // Remove empty session
+                delete sessions[currentSession];
             }
             updateStatus(currentSession);
         }
@@ -44,7 +55,7 @@ io.on("connection", (socket) => {
 });
 
 app.get("/", (req, res) => {
-    res.send("Socket.io server is running!");
+    res.send("Socket.io session tracking is running!");
 });
 
 const PORT = process.env.PORT || 3000;
