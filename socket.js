@@ -11,7 +11,7 @@ const io = new Server(server, {
     }
 });
 
-const sessions = {}; // Store users in each session
+const sessions = {}; // Store active users in each session
 
 io.on("connection", (socket) => {
     let currentSession = null;
@@ -36,6 +36,9 @@ io.on("connection", (socket) => {
 
         sessions[sessionID].add(socket.id);
         updateStatus(sessionID);
+
+        // ✅ Alert All Users in Session
+        io.to(sessionID).emit("alert", `New user joined session: ${sessionID}`);
     });
 
     socket.on("disconnect", () => {
